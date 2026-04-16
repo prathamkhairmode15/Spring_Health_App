@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Health Screening | Cloud Based Prediction</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #818cf8;
+            --secondary: #ec4899;
+            --accent: #10b981;
+            --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+            --card-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            --card-border: 1px solid rgba(226, 232, 240, 0.8);
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 3rem 1rem;
+        }
+
+        .main-wrapper {
+            width: 100%;
+            max-width: 1200px;
+            display: grid;
+            grid-template-columns: 450px 1fr;
+            gap: 2.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            .main-wrapper {
+                grid-template-columns: 1fr;
+                max-width: 600px;
+            }
+        }
+
+        .screen-container {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            padding: 2.5rem;
+            border-radius: 32px;
+            box-shadow: var(--card-shadow);
+            border: var(--card-border);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .dashboard-header {
+            grid-column: 1 / -1;
+            text-align: left;
+            margin-bottom: 2rem;
+            padding-left: 0.5rem;
+        }
+
+        .dashboard-header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.02em;
+        }
+
+        .dashboard-header p {
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .header {
+            margin-bottom: 2rem;
+        }
+
+        .header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+            color: var(--primary);
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .form-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-left: 0.2rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            border: 2px solid #f1f5f9;
+            border-radius: 16px;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            outline: none;
+            background: #f8fafc;
+        }
+
+        input:focus {
+            background: white;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        .symptom-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .symptom-tag {
+            cursor: pointer;
+            padding: 0.75rem;
+            background: #fff;
+            border: 2px solid #f1f5f9;
+            border-radius: 14px;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .symptom-tag:hover {
+            border-color: var(--primary-light);
+            background: #fdfdff;
+        }
+
+        .symptom-tag.selected {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 8px 15px -5px rgba(79, 70, 229, 0.4);
+        }
+
+        .actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        button {
+            padding: 1rem;
+            border: none;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+        }
+
+        .btn-predict {
+            flex: 2;
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.2);
+        }
+
+        .btn-predict:hover:not(:disabled) {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn-reset {
+            flex: 1;
+            background: white;
+            color: var(--text-muted);
+            border: 1px solid #e2e8f0;
+        }
+
+        .btn-reset:hover {
+            background: #f8fafc;
+            color: var(--text-main);
+        }
+
+        .result-stage {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .placeholder-card {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.4);
+            border: 2px dashed #e2e8f0;
+            border-radius: 32px;
+            padding: 3rem;
+            color: var(--text-muted);
+            text-align: center;
+            min-height: 400px;
+        }
+
+        .placeholder-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            filter: grayscale(1);
+            opacity: 0.3;
+        }
+
+        .result-card {
+            display: none;
+            background: white;
+            padding: 3rem;
+            border-radius: 32px;
+            box-shadow: var(--card-shadow);
+            border: var(--card-border);
+            animation: slideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            text-align: center;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .meta-box {
+            background: #f8fafc;
+            padding: 1.25rem;
+            border-radius: 20px;
+            border: 1px solid #f1f5f9;
+        }
+
+        .meta-box label {
+            display: block;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .meta-box span {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .chart-box {
+            padding: 2.5rem;
+            min-height: 350px;
+        }
+
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .chart-title::before {
+            content: '';
+            width: 4px;
+            height: 18px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        .loader {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .validation-msg {
+            color: var(--error);
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-top: 0.25rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-wrapper">
+        <header class="dashboard-header">
+            <h1>Healthcare Prediction Portal</h1>
+            <p>Smart diagnostic assistance with real-time data analytics</p>
+        </header>
+
+        <!-- Form Section -->
+        <div class="screen-container">
+            <div class="header">
+                <h2>Health Intake</h2>
+                <p>Complete the patient profile for screening</p>
+            </div>
+
+            <div class="form-section">
+                <div class="input-group">
+                    <label for="name">Patient Name</label>
+                    <input type="text" id="name" placeholder="Full name" autocomplete="off">
+                    <div id="nameError" class="validation-msg">Patient name is required</div>
+                </div>
+
+                <div class="input-group">
+                    <label for="age">Age</label>
+                    <input type="number" id="age" placeholder="Years" min="1">
+                    <div id="ageError" class="validation-msg">Please enter a valid age</div>
+                </div>
+
+                <div class="input-group">
+                    <label>Select Symptoms</label>
+                    <div class="symptom-grid" id="symptomGrid">
+                        <div class="symptom-tag" data-val="fever">Fever</div>
+                        <div class="symptom-tag" data-val="cough">Cough</div>
+                        <div class="symptom-tag" data-val="headache">Headache</div>
+                        <div class="symptom-tag" data-val="cold">Common Cold</div>
+                        <div class="symptom-tag" data-val="fatigue">Fatigue</div>
+                        <div class="symptom-tag" data-val="sore throat">Sore Throat</div>
+                        <div class="symptom-tag" data-val="body pain">Body Pain</div>
+                        <div class="symptom-tag" data-val="nausea">Nausea</div>
+                    </div>
+                    <div id="symptomError" class="validation-msg">Select at least one symptom</div>
+                </div>
+
+                <div class="actions">
+                    <button id="resetBtn" class="btn-reset">Clear</button>
+                    <button id="predictBtn" class="btn-predict">
+                        <span id="btnLabel">Analyze Symptoms</span>
+                        <div id="btnLoader" class="loader" style="display: none;"></div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Section -->
+        <div class="result-stage">
+            <div id="placeholder" class="placeholder-card">
+                <div class="placeholder-icon">📋</div>
+                <h3>Awaiting Analysis</h3>
+                <p>Complete the form to see your preliminary health prediction here.</p>
+            </div>
+
+            <div id="resultCard" class="result-card">
+                <div class="result-header">🩺 Recommended Analysis</div>
+                <div id="diseaseDisplay" class="disease-name">--</div>
+                
+                <div class="meta-grid">
+                    <div class="meta-box">
+                        <label>Probability</label>
+                        <span id="confidenceDisplay">--</span>
+                    </div>
+                    <div class="meta-box">
+                        <label>Patient Record</label>
+                        <span id="patientDisplay">--</span>
+                    </div>
+                </div>
+
+                <div id="timeDisplay" class="timestamp">--</div>
+            </div>
+
+            <!-- Stats Section -->
+            <div class="screen-container chart-box">
+                <div class="chart-title">Population Trends</div>
+                <div style="height: 250px; position: relative;">
+                    <canvas id="diseaseChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const symptoms = new Set();
+        const tags = document.querySelectorAll('.symptom-tag');
+        
+        tags.forEach(tag => {
+            tag.addEventListener('click', () => {
+                const val = tag.getAttribute('data-val');
+                if (symptoms.has(val)) {
+                    symptoms.delete(val);
+                    tag.classList.remove('selected');
+                } else {
+                    symptoms.add(val);
+                    tag.classList.add('selected');
+                }
+                document.getElementById('symptomError').style.display = 'none';
+            });
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            document.getElementById('name').value = '';
+            document.getElementById('age').value = '';
+            symptoms.clear();
+            tags.forEach(t => t.classList.remove('selected'));
+            document.getElementById('resultCard').style.display = 'none';
+            document.getElementById('placeholder').style.display = 'flex';
+            document.querySelectorAll('.validation-msg').forEach(m => m.style.display = 'none');
+        });
+
+        document.getElementById('predictBtn').addEventListener('click', async () => {
+            const name = document.getElementById('name').value.trim();
+            const age = document.getElementById('age').value;
+            const symptomArr = Array.from(symptoms);
+            
+            let isValid = true;
+            if (!name) { document.getElementById('nameError').style.display = 'block'; isValid = false; }
+            else { document.getElementById('nameError').style.display = 'none'; }
+            
+            if (!age || age <= 0) { document.getElementById('ageError').style.display = 'block'; isValid = false; }
+            else { document.getElementById('ageError').style.display = 'none'; }
+            
+            if (symptomArr.length === 0) { document.getElementById('symptomError').style.display = 'block'; isValid = false; }
+            else { document.getElementById('symptomError').style.display = 'none'; }
+
+            if (!isValid) return;
+
+            const btn = document.getElementById('predictBtn');
+            const label = document.getElementById('btnLabel');
+            const loader = document.getElementById('btnLoader');
+            const resultCard = document.getElementById('resultCard');
+            const placeholder = document.getElementById('placeholder');
+
+            btn.disabled = true;
+            label.textContent = 'Analyzing...';
+            loader.style.display = 'block';
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: name,
+                        age: parseInt(age),
+                        symptoms: symptomArr.join(', ')
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    document.getElementById('diseaseDisplay').textContent = data.disease;
+                    document.getElementById('confidenceDisplay').textContent = data.confidence;
+                    document.getElementById('patientDisplay').textContent = `${data.name} (Age: ${data.age})`;
+                    document.getElementById('timeDisplay').textContent = 'Generated: ' + data.timestamp;
+                    
+                    const diseaseColor = data.confidence === 'High' ? 'var(--error)' : (data.confidence === 'Medium' ? 'var(--warning)' : 'var(--success)');
+                    document.getElementById('diseaseDisplay').style.color = diseaseColor;
+
+                    resultCard.className = 'result-card ' + data.confidence.toLowerCase() + '-confidence';
+                    
+                    placeholder.style.display = 'none';
+                    resultCard.style.display = 'block';
+                } else {
+                    alert('Analysis failed. Engine offline.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Structural connection loss.');
+            } finally {
+                btn.disabled = false;
+                label.textContent = 'Analyze Symptoms';
+                loader.style.display = 'none';
+                loadStats();
+            }
+        });
+
+        // Chart.js Implementation
+        let diseaseChart = null;
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/predict/stats');
+                const data = await response.json();
+                
+                const labels = Object.keys(data);
+                const values = Object.values(data);
+
+                const ctx = document.getElementById('diseaseChart').getContext('2d');
+                
+                if (diseaseChart) {
+                    diseaseChart.destroy();
+                }
+
+                diseaseChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: values,
+                            backgroundColor: [
+                                '#6366f1', '#ec4899', '#10b981', '#f59e0b', 
+                                '#ef4444', '#8b5cf6', '#06b6d4', '#475569'
+                            ],
+                            borderWidth: 0,
+                            hoverOffset: 15
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 15,
+                                    font: { family: 'Poppins', size: 11 }
+                                }
+                            }
+                        },
+                        cutout: '70%'
+                    }
+                });
+            } catch (err) {
+                console.error("Failed to load stats:", err);
+            }
+        }
+
+        // Initial Load
+        window.addEventListener('load', loadStats);
+    </script>
+</body>
+</html>
