@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-health-app
+  labels:
+    app: spring-health-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: spring-health-app
+  template:
+    metadata:
+      labels:
+        app: spring-health-app
+    spec:
+      containers:
+      - name: spring-health-app
+        image: spring-health-app:latest
+        imagePullPolicy: Never # Use local image
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DB_URL
+          value: "jdbc:mysql://mysql-service:3306/health_pred_db?createDatabaseIfNotExist=true"
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: username
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: password
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 180
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 300
+          periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: health-app-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: spring-health-app
+  ports:
+  - port: 80
+    targetPort: 8080
